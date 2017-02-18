@@ -1,0 +1,62 @@
+#!/bin/bash
+#
+# gulpd       Startup script for the gulpd
+#
+# chkconfig: - 98 11
+# description: gulpd
+# processname: gulpd
+# pidfile: /var/run/gulpd.pid
+#
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+GULPD_LANG=${GULPD_LANG-"C"}
+
+INITLOG_ARGS=""
+
+gulpd=${GULPD-/usr/sbin/gulpd}
+prog=gulpd
+pidfile=${PIDFILE-/var/run/gulp.pid}
+lockfile=${LOCKFILE-/var/run/gulp.lock}
+RETVAL=0
+STOP_TIMEOUT=${STOP_TIMEOUT-10}
+
+start() {
+        echo -n $"Starting $prog: "
+        LANG=$GULPD_LANG daemon --pidfile=${pidfile} $gulpd $OPTIONS
+        RETVAL=$?
+        echo
+        [ $RETVAL = 0 ] && touch ${lockfile}
+        return $RETVAL
+}
+stop() {
+	status -p ${pidfile} $gulpd > /dev/null
+	if [[ $? = 0 ]]; then
+		echo -n $"Stopping $prog: "
+		killproc -p ${pidfile} -d ${STOP_TIMEOUT} $gulpd
+	else
+		echo -n $"Stopping $prog: "
+		success
+	fi
+	RETVAL=$?
+	echo
+	[ $RETVAL = 0 ] && rm -f ${lockfile} ${pidfile}
+}
+
+# See how we were called.
+case "$1" in
+  start)
+	start
+	;;
+  stop)
+	stop
+	;;
+  restart)
+	stop
+	start
+	;;
+  *)
+	RETVAL=2
+esac
+
+exit $RETVAL

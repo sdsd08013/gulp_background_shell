@@ -1,0 +1,3 @@
+#!/bin/bash
+cd /home
+nohup gulp </dev/null &>/dev/null &
